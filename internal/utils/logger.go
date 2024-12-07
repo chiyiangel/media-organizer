@@ -19,35 +19,59 @@ const (
 	LevelFatal
 )
 
+type LoggerOptions struct {
+	LogPath   string // 日志文件路径
+	QuietMode bool   // 安静模式，只输出到文件
+}
+
 type Logger struct {
 	*log.Logger
 	logFile *os.File
 	level   LogLevel
+	quiet   bool
 }
 
-func NewLogger() *Logger {
-	// 创建日志目录
-	logDir := "logs"
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		log.Fatal("无法创建日志目录:", err)
+func NewLogger(opts *LoggerOptions) *Logger {
+	if opts == nil {
+		opts = &LoggerOptions{}
 	}
 
-	// 创建日志文件
-	logPath := filepath.Join(logDir, fmt.Sprintf("media-organizer-%s.log",
-		time.Now().Format("2006-01-02-15-04-05")))
+	// 确定日志文件路径
+	logPath := opts.LogPath
+	if logPath == "" {
+		logDir := "logs"
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			log.Fatal("无法创建日志目录:", err)
+		}
+		logPath = filepath.Join(logDir, fmt.Sprintf("media-organizer-%s.log",
+			time.Now().Format("2006-01-02-15-04-05")))
+	} else {
+		// 确保日志文件的目录存在
+		logDir := filepath.Dir(logPath)
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			log.Fatal("无法创建日志目录:", err)
+		}
+	}
 
+	// 打开日志文件
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatal("无法创建日志文件:", err)
 	}
 
-	// 同时输出到控制台和文件
-	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	// 根据安静模式决定输出位置
+	var writer io.Writer
+	if opts.QuietMode {
+		writer = logFile
+	} else {
+		writer = io.MultiWriter(os.Stdout, logFile)
+	}
 
 	return &Logger{
-		Logger:  log.New(multiWriter, "", log.Ldate|log.Ltime),
+		Logger:  log.New(writer, "", log.Ldate|log.Ltime),
 		logFile: logFile,
 		level:   LevelInfo,
+		quiet:   opts.QuietMode,
 	}
 }
 

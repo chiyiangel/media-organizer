@@ -12,6 +12,8 @@ import (
 func main() {
 	srcPath := flag.String("src", "", "源文件夹路径")
 	destPath := flag.String("dest", "", "目标文件夹路径")
+	logPath := flag.String("log", "", "日志文件路径 (默认: logs/media-organizer-{timestamp}.log)")
+	quiet := flag.Bool("quiet", false, "安静模式，只输出日志到文件")
 	flag.Parse()
 
 	if *srcPath == "" || *destPath == "" {
@@ -19,7 +21,10 @@ func main() {
 	}
 
 	// 初始化日志
-	logger := utils.NewLogger()
+	logger := utils.NewLogger(&utils.LoggerOptions{
+		LogPath:   *logPath,
+		QuietMode: *quiet,
+	})
 	defer logger.Close()
 
 	// 创建目标文件夹
