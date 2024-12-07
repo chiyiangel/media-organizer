@@ -15,7 +15,7 @@ GOGET=$(GOCMD) get
 LDFLAGS=-ldflags "-X main.Version=${VERSION}"
 
 # 目标平台列表
-PLATFORMS=linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64 windows-arm64
+PLATFORMS=linux-amd64 linux-arm64 linux-armv7 darwin-amd64 darwin-arm64 windows-amd64 windows-arm64 synology-amd64 synology-arm64 synology-armv7
 
 # 清理构建目录
 .PHONY: clean
@@ -42,6 +42,12 @@ linux-amd64: init
 linux-arm64: init
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 $(MAIN_PATH)
 
+# Linux ARMv7 (适用于32位ARM设备，如较老的树莓派)
+.PHONY: linux-armv7
+linux-armv7: init
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 $(GOBUILD) $(LDFLAGS) \
+		-o $(BUILD_DIR)/$(BINARY_NAME)-linux-armv7 $(MAIN_PATH)
+
 # macOS AMD64
 .PHONY: darwin-amd64
 darwin-amd64: init
@@ -61,6 +67,27 @@ windows-amd64: init
 .PHONY: windows-arm64
 windows-arm64: init
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-arm64.exe $(MAIN_PATH)
+
+# Synology AMD64 (适用于Intel/AMD架构的群晖NAS)
+.PHONY: synology-amd64
+synology-amd64: init
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) \
+		-o $(BUILD_DIR)/$(BINARY_NAME)-synology-amd64 $(MAIN_PATH)
+	cd $(BUILD_DIR) && tar czf $(BINARY_NAME)-synology-amd64.spk $(BINARY_NAME)-synology-amd64
+
+# Synology ARM64 (适用于ARM64架构的群晖NAS)
+.PHONY: synology-arm64
+synology-arm64: init
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) \
+		-o $(BUILD_DIR)/$(BINARY_NAME)-synology-arm64 $(MAIN_PATH)
+	cd $(BUILD_DIR) && tar czf $(BINARY_NAME)-synology-arm64.spk $(BINARY_NAME)-synology-arm64
+
+# Synology ARMv7 (适用于32位ARM架构的群晖NAS)
+.PHONY: synology-armv7
+synology-armv7: init
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 $(GOBUILD) $(LDFLAGS) \
+		-o $(BUILD_DIR)/$(BINARY_NAME)-synology-armv7 $(MAIN_PATH)
+	cd $(BUILD_DIR) && tar czf $(BINARY_NAME)-synology-armv7.spk $(BINARY_NAME)-synology-armv7
 
 # 运行测试
 .PHONY: test
@@ -93,7 +120,13 @@ help:
 	@echo "单平台构建目标:"
 	@echo "  make linux-amd64   - 构建 Linux AMD64 版本"
 	@echo "  make linux-arm64   - 构建 Linux ARM64 版本"
+	@echo "  make linux-armv7   - 构建 Linux ARMv7 版本"
 	@echo "  make darwin-amd64  - 构建 macOS AMD64 版本"
 	@echo "  make darwin-arm64  - 构建 macOS ARM64 版本"
 	@echo "  make windows-amd64 - 构建 Windows AMD64 版本"
-	@echo "  make windows-arm64 - 构建 Windows ARM64 版本" 
+	@echo "  make windows-arm64 - 构建 Windows ARM64 版本"
+	@echo ""
+	@echo "群晖NAS构建目标:"
+	@echo "  make synology-amd64  - 构建 群晖 Intel/AMD 版本"
+	@echo "  make synology-arm64  - 构建 群晖 ARM64 版本"
+	@echo "  make synology-armv7  - 构建 群晖 ARMv7 版本" 

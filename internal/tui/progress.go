@@ -79,7 +79,7 @@ func (m *ProgressModel) View() string {
 	}
 
 	str := strings.Builder{}
-	str.WriteString("\n�� 媒体文件整理进度\n\n")
+	str.WriteString("\n 媒体文件整理进度\n\n")
 
 	// 进度条
 	percent := float64(m.current) / float64(m.total)
