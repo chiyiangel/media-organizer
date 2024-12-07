@@ -6,6 +6,7 @@ NOTICE: ALL CODE IS WRITTEN BY AI, I JUST MODIFIED IT.
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/yourusername/media-organizer)](https://golang.org/dl/)
 [![License](https://img.shields.io/github/license/yourusername/media-organizer)](LICENSE)
+[![Build Status](https://github.com/chiyiangel/media-organizer/workflows/Build%20and%20Test/badge.svg)](https://github.com/chiyiangel/media-organizer/actions)
 
 ## Features
 
