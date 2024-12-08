@@ -157,11 +157,11 @@ func (o *Organizer) processFile(filePath string) error {
 }
 
 func (o *Organizer) buildDestPath(t time.Time, isVideo bool) string {
-	mediaType := "photos"
+	mediaType := "Photos"
 	if isVideo {
-		mediaType = "videos"
+		mediaType = "Videos"
 	}
-	return filepath.Join(o.destPath, mediaType, fmt.Sprintf("%d/%02d", t.Year(), t.Month()))
+	return filepath.Join(o.destPath, mediaType, fmt.Sprintf("%d/%02d/%02d-%02d", t.Year(), t.Month(), t.Month(), t.Day()))
 }
 
 func (o *Organizer) copyFile(src, dest string) error {
