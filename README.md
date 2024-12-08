@@ -60,12 +60,27 @@ Available options:
         Log file path (default: logs/media-organizer-{timestamp}.log)
   -quiet
         Quiet mode, only output to log file
+  -skip string
+        Directories to skip, comma-separated (default: "@eaDir")
+```
+
+Examples:
+```bash
+# Basic usage
+./media-organizer -src /path/to/photos -dest /path/to/output
+
+# Skip multiple directories
+./media-organizer -src /photos -dest /output -skip "@eaDir,thumbs,temp"
+
+# Skip directories and use custom log file
+./media-organizer -src /photos -dest /output -skip "@eaDir,cache" -log /var/log/organizer.log
 ```
 
 The tool will:
 1. Scan the source directory for media files
-2. Read EXIF/metadata information
-3. Create a structured directory in the destination:
+2. Skip specified directories (e.g., "@eaDir" for Synology thumbnails)
+3. Read EXIF/metadata information
+4. Create a structured directory in the destination:
 ```
 output/
 ├── photos/
