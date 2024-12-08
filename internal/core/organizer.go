@@ -20,14 +20,25 @@ type Organizer struct {
 	logger   *utils.Logger
 	progress *tui.ProgressModel
 	program  *tea.Program
+	skipDirs map[string]bool
 }
 
-func NewOrganizer(src, dest string, logger *utils.Logger) *Organizer {
+func NewOrganizer(src, dest string, logger *utils.Logger, skipDirs []string) *Organizer {
+	skipMap := make(map[string]bool)
+	for _, dir := range skipDirs {
+		skipMap[dir] = true
+	}
+
 	return &Organizer{
 		srcPath:  src,
 		destPath: dest,
 		logger:   logger,
+		skipDirs: skipMap,
 	}
+}
+
+func (o *Organizer) shouldSkipDir(name string) bool {
+	return o.skipDirs[name]
 }
 
 func (o *Organizer) Process() error {
@@ -37,6 +48,13 @@ func (o *Organizer) Process() error {
 		if err != nil {
 			return err
 		}
+
+		// 检查是否需要跳过文件夹
+		if info.IsDir() && o.shouldSkipDir(info.Name()) {
+			o.logger.Debug(fmt.Sprintf("跳过文件夹: %s", path))
+			return filepath.SkipDir
+		}
+
 		if !info.IsDir() && IsMediaFile(path) {
 			totalFiles++
 		}
@@ -64,7 +82,7 @@ func (o *Organizer) Process() error {
 
 	// 启动进度显示
 	go func() {
-		if err := o.program.Start(); err != nil {
+		if _, err := o.program.Run(); err != nil {
 			errChan <- err
 		}
 	}()
@@ -74,11 +92,21 @@ func (o *Organizer) Process() error {
 		if err != nil {
 			return err
 		}
+
+		// 检查是否需要跳过文件夹
+		if info.IsDir() && o.shouldSkipDir(info.Name()) {
+			o.logger.Debug(fmt.Sprintf("跳过文件夹: %s", path))
+			return filepath.SkipDir
+		}
+
 		if !info.IsDir() && IsMediaFile(path) {
 			filesChan <- path
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	close(filesChan)
 	wg.Wait()
