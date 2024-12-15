@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -193,9 +194,29 @@ func (o *Organizer) buildDestPath(t time.Time, isVideo bool) string {
 }
 
 func (o *Organizer) copyFile(src, dest string) error {
-	input, err := os.ReadFile(src)
+	// Open the source file
+	sourceFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(dest, input, 0644)
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destFile, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	// Copy data from source to destination
+	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		return err
+	}
+
+	// Flush file contents to stable storage
+	if err := destFile.Sync(); err != nil {
+		return err
+	}
+
+	return nil
 }
